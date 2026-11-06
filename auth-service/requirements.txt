@@ -1,0 +1,5 @@
+Flask==3.0.3
+# [rsa] kéo theo `cryptography`: bắt buộc với MySQL 8 (caching_sha2_password)
+PyMySQL[rsa]==1.1.1
+PyJWT==2.9.0
+gunicorn==22.0.0

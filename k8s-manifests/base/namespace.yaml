@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-k8s
+  labels:
+    run: shop-k8s

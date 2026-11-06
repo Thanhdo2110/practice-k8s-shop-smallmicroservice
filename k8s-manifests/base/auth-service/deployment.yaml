@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: shop-k8s
+  name: auth-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: shop-k8s
+  template:
+    metadata:
+      labels:
+        run: shop-k8s
+    spec:
+      containers:
+      - image: registry.k8s.io/serve_hostname
+        imagePullPolicy: Always
+        name: snowflake

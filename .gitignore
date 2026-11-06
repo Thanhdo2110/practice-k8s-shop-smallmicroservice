@@ -1,0 +1,30 @@
+# ---- project ----
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# ---- env / secrets (KHÔNG commit) ----
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ---- frontend ----
+node_modules/
+frontend/dist/
+.vite/
+
+# ---- editor / os ----
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+.DS_Store
+
+# ---- log ----
+*.log
+logs/
