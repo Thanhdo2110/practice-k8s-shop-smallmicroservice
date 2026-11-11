@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base dung chung cho moi moi truong. Khong dat namespace o day:
+# cac manifest giu nguyen "shop-k8s", overlay se ghi de bang truong `namespace:`.
+resources:
+  - namespace.yaml
+  - harbor-secret.yaml
+
+  - auth-service/serviceaccount.yaml
+  - auth-service/configmap.yaml
+  - auth-service/secret.yaml
+  - auth-service/deployment.yaml
+  - auth-service/service.yaml
+  - auth-service/hpa.yaml
+  - auth-service/pdb.yaml
+  - auth-service/networkpolicy.yaml
+
+  - product-service/serviceaccount.yaml
+  - product-service/configmap.yaml
+  - product-service/secret.yaml
+  - product-service/deployment.yaml
+  - product-service/service.yaml
+  - product-service/hpa.yaml
+  - product-service/pdb.yaml
+  - product-service/networkpolicy.yaml
+
+  - order-service/serviceaccount.yaml
+  - order-service/configmap.yaml
+  - order-service/secret.yaml
+  - order-service/deployment.yaml
+  - order-service/service.yaml
+  - order-service/hpa.yaml
+  - order-service/pdb.yaml
+  - order-service/networkpolicy.yaml
+
+  - frontend/serviceaccount.yaml
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+  - frontend/hpa.yaml
+  - frontend/pdb.yaml
+  - frontend/networkpolicy.yaml
+
+  - ingress/ingress.yaml
+
+# Nhan to chuc, khong dong cham selector/template tranh vo Deployment.
+labels:
+  - includeSelectors: false
+    includeTemplates: false
+    pairs:
+      app.kubernetes.io/part-of: shop-k8s
