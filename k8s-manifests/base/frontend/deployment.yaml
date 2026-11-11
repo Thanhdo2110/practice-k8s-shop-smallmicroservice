@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontendthk8s
+  namespace: shop-k8s
+  labels:
+    run: frontendthk8s
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: frontendthk8s
+
+  strategy:
+    type: RollingUpdate              # cap nhat pod moi
+    rollingUpdate:
+      maxSurge: 1                    # Cho phep tao them 1 Pod moi truoc khi xoa Pod cu.
+      maxUnavailable: 0              # Uu tien khong lam giam so Pod kha dung trong qua trinh update.
+
+  template:
+    metadata:
+      labels:
+        run: frontendthk8s
+    spec:
+      serviceAccountName: frontendthk8s-serviceaccount
+      imagePullSecrets:             # FIX: truoc day go sai thanh "imagesPullSecrets"
+      - name: harbor-secret
+
+      topologySpreadConstraints:    # sap xep deu cac pod len cac node
+      - maxSkew: 1                  # moi node khong duoc lech qua 1 , vi du: 2-2-1 . fail: 3-1-1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            run: frontendthk8s
+
+      containers:
+      - name: frontendthk8s
+        # v2: image build lai tu Dockerfile moi (co COPY nginx.conf -> try_files cho SPA)
+        image: 192.168.0.113/library/frontendthk8s:v2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+
+        # FIX: nginx:alpine listen port 80 va root tra ve 200 cho "/".
+        # (Truoc day probe tro port 8000 + /healthz, /readyz -> nginx tra 404 nen pod khong bao gio Ready)
+        startupProbe:
+          httpGet:
+            path: /
+            port: 80
+          failureThreshold: 30
+          periodSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 5
+          timeoutSeconds: 3
+
+      # FIX: KHONG dat runAsUser/runAsGroup o day.
+      # Image hien tai la nginx:alpine, master process can root de bind port 80 va ghi
+      # /var/cache/nginx, /var/run/nginx.pid. Ep UID 1000 se gay
+      # "bind() to 0.0.0.0:80 failed (13: Permission denied)" -> CrashLoopBackOff.
+      # Muon hardening: doi Dockerfile sang nginxinc/nginx-unprivileged:alpine (port 8080),
+      # doi containerPort/probe sang 8080 roi moi bat lai securityContext.

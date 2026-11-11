@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontendthk8s-networkpolicy
+  namespace: shop-k8s
+spec:
+  podSelector:
+    matchLabels:
+      run: frontendthk8s
+
+  policyTypes:
+  - Ingress
+  - Egress
+
+  ingress:
+  # 1) ingress-nginx -> static site (port 80)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 80
+
+  # 2) kubelet probe tu node
+  - from:
+    - ipBlock:
+        cidr: 192.168.0.0/24
+    ports:
+    - protocol: TCP
+      port: 80
+
+  egress:
+  # Frontend la static (nginx) -> chi can DNS.
+  # Browser goi API qua Ingress, khong phai tu trong pod, nen khong can mo 8000/8001/8002.
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
