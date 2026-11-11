@@ -1,0 +1,61 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-k8s-ingress
+  namespace: shop-k8s
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      
+      - path: /api/v1/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service-svc
+            port:
+              number: 80
+
+      - path: /api/v1/users
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service-svc
+            port:
+              number: 80
+
+      
+      - path: /api/v1/products
+        pathType: Prefix
+        backend:
+          service:
+            name: product-service-svc
+            port:
+              number: 80
+
+      - path: /api/v1/categories
+        pathType: Prefix
+        backend:
+          service:
+            name: product-service-svc
+            port:
+              number: 80
+
+     
+      - path: /api/v1/orders
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service-svc
+            port:
+              number: 80
+
+      # ---- frontend (React SPA, phai de cuoi cung) ----
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontendthk8s-svc
+            port:
+              number: 80
