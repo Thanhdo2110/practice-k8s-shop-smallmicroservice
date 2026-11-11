@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service-svc
+  namespace: shop-k8s
+spec:
+  selector:
+    run: auth-service
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8000

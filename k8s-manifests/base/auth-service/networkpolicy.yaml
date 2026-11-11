@@ -1,0 +1,56 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: auth-service-networkpolicy
+  namespace: shop-k8s
+spec:
+  podSelector:
+    matchLabels:
+      run: auth-service
+
+  # Truoc day chi co Egress -> chieu Ingress mo hoan toan.
+  # Bat Ingress + chi allow dung luong can thiet (default-deny cho rieng pod nay).
+  policyTypes:
+  - Ingress
+  - Egress
+
+  ingress:
+  # 1) Chi ingress-nginx duoc goi API tu ben ngoai.
+  #    Namespace ingress-nginx co san label kubernetes.io/metadata.name (K8s >= 1.21).
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+
+  # 2) kubelet probe di tu node IP. Vai CNI coi day la traffic ngoai policy,
+  #    mot so khac thi khong -> mo node CIDR cho chac.
+  - from:
+    - ipBlock:
+        cidr: 192.168.0.0/24
+    ports:
+    - protocol: TCP
+      port: 8000
+
+  egress:
+  # DNS: CoreDNS tra loi qua UDP 53 truoc, phai mo ca UDP va TCP
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+  # MySQL tren Azure
+  - to:
+    - ipBlock:
+        cidr: 74.151.142.190/32 # ip cua database tren Azure
+    ports:
+    - protocol: TCP
+      port: 3306
