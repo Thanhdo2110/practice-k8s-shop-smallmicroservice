@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: shop-k8s
+  labels:
+    run: order-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: order-service
+
+  strategy:
+    type: RollingUpdate # cap nhat pod moi
+    rollingUpdate:
+      maxSurge: 1 # Cho phep tao them 1 Pod moi truoc khi xoa Pod cu.
+      maxUnavailable: 0 # Uu tien khong lam giam so Pod kha dung trong qua trinh update.
+
+  template:
+    metadata:
+      labels:
+        run: order-service
+    spec:
+      serviceAccountName: order-service-serviceaccount
+      imagePullSecrets:
+      - name: harbor-secret
+
+      topologySpreadConstraints: # sap xep deu cac pod len cac node
+      - maxSkew: 1 # moi node khong duoc lech qua 1 , vi du: 2-2-1 . fail: 3-1-1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            run: order-service
+
+      containers:
+      - name: order-service
+        image: 192.168.0.113/library/order-service:v1
+        imagePullPolicy: Always # tag :v1 la mutable -> luon keo image moi khi khoi dong pod
+        ports:
+        - containerPort: 8002
+
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+
+        envFrom:
+        - configMapRef:
+            name: order-service-configmap
+        - secretRef:
+            name: order-service-secret
+
+        # startupProbe: cho MySQL san sang MOT LAN luc khoi dong (/readyz co check DB)
+        startupProbe:
+          httpGet:
+            path: /readyz
+            port: 8002
+          failureThreshold: 30
+          periodSeconds: 5
+
+        # livenessProbe: chi kiem tra process con song, KHONG cham DB
+        # -> DB chet khong lam pod bi restart oan
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8002
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+        # readinessProbe: KHONG cham DB
+        # -> DB chap 1 nhip khong lam ca cum pod roi khoi endpoints (tranh 503 toan he thong)
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8002
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+        supplementalGroups: [4000]

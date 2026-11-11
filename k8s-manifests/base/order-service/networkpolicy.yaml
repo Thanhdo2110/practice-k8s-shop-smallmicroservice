@@ -1,0 +1,61 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: order-service-networkpolicy
+  namespace: shop-k8s
+spec:
+  podSelector:
+    matchLabels:
+      run: order-service
+
+  policyTypes:
+  - Ingress
+  - Egress
+
+  ingress:
+  # 1) ingress-nginx -> API tu ben ngoai
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8002
+
+  # 2) kubelet probe tu node
+  - from:
+    - ipBlock:
+        cidr: 192.168.0.0/24
+    ports:
+    - protocol: TCP
+      port: 8002
+
+  egress:
+  # DNS (UDP + TCP 53)
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+  # product-service: bat buoc, order tao don phai lay gia/thong tin san pham
+  - to:
+    - podSelector:
+        matchLabels:
+          run: product-service
+    ports:
+    - protocol: TCP
+      port: 8001
+
+  # MySQL tren Azure
+  - to:
+    - ipBlock:
+        cidr: 74.151.142.190/32
+    ports:
+    - protocol: TCP
+      port: 3306

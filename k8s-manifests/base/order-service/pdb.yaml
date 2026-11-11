@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: order-service-pdb
+  namespace: shop-k8s
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      run: order-service
