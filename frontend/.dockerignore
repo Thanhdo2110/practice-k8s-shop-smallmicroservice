@@ -1,0 +1,24 @@
+# Dependencies (npm ci cài lại trong image)
+node_modules/
+
+# Build output (npm run build tạo lại trong image)
+dist/
+.vite/
+
+# Env / secrets (Vite chỉ dùng lúc build, không copy .env thật vào image)
+.env
+.env.*
+!.env.example
+
+# VCS / editor / OS
+.git/
+.gitignore
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
