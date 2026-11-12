@@ -61,6 +61,7 @@ class Config:
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "shop_orders")
     DB_CONNECT_TIMEOUT = _int("DB_CONNECT_TIMEOUT", 3)
     DB_PING_TIMEOUT = _int("DB_PING_TIMEOUT", 3)
+    MYSQL_SSL_CA = os.getenv("MYSQL_SSL_CA", "").strip()
 
     JWT_SECRET = os.getenv("JWT_SECRET", "dev-only-secret-change-me")
     JWT_ISSUER = os.getenv("JWT_ISSUER", "shop")

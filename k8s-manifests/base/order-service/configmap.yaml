@@ -21,3 +21,4 @@ data:
   # Phai dung ten Service trong cluster (Service product-service-svc, targetPort 8001).
   PRODUCT_SERVICE_BASE_URL: "http://product-service-svc:80"
   PRODUCT_SERVICE_TIMEOUT: "3"
+  MYSQL_SSL_CA: "/etc/mysql/certs/DigiCertGlobalRootG2.crt.pem"

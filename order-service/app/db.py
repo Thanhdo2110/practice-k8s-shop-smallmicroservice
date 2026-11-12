@@ -19,6 +19,14 @@ from .errors import ApiError, conflict, upstream_failure
 
 def _connect(ping=False):
     read_timeout = Config.DB_PING_TIMEOUT if ping else 10
+
+    ssl_args = None
+    if Config.MYSQL_SSL_CA:
+        ssl_args = {
+            "ca": Config.MYSQL_SSL_CA,
+            "check_hostname": True,
+        }
+
     return pymysql.connect(
         host=Config.MYSQL_HOST,
         port=Config.MYSQL_PORT,
@@ -31,6 +39,7 @@ def _connect(ping=False):
         connect_timeout=Config.DB_CONNECT_TIMEOUT,
         read_timeout=read_timeout,
         write_timeout=read_timeout,
+        ssl=ssl_args,
     )
 
 
