@@ -1,0 +1,13 @@
+# Pool pod CIDR moi cho cum kubeadm lab.
+# Ap dung truoc khi restart workload de pod moi nhan IP 10.244.x.
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: pods-10-244
+spec:
+  cidr: 10.244.0.0/16
+  blockSize: 26
+  ipipMode: Never
+  vxlanMode: CrossSubnet
+  natOutgoing: true
+  nodeSelector: all()

@@ -1,0 +1,26 @@
+# Strategic merge patch cho Deployment ingress-nginx-controller.
+# Ap dung sau khi cai upstream manifest v1.12.8:
+#   kubectl -n ingress-nginx patch deploy ingress-nginx-controller \
+#     --patch-file k8s-manifests/infra/ingress-nginx/controller-ha-patch.yaml.patch
+#
+# nodeTaintsPolicy: Honor la bat buoc: control-plane bi taint nhung mac dinh
+# nodeTaintsPolicy=Ignore se tinh no la domain 0 pod -> maxSkew=1 khong the
+# thoa khi rollout (2 pod cu + 1 pod surge tren 3 worker).
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: controller
+              app.kubernetes.io/instance: ingress-nginx

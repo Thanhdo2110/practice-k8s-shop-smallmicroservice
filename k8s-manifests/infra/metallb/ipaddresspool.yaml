@@ -1,0 +1,10 @@
+# Dai VIP LAN cap cho Service LoadBalancer.
+# .120-.125 nam ngoai DHCP range cua router.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: lan-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.0.120-192.168.0.125

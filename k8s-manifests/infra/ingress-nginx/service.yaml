@@ -1,0 +1,40 @@
+# Service LoadBalancer cho ingress-nginx (MetalLB L2).
+# - VIP duoc pin qua annotation metallb.io/loadBalancerIPs
+# - externalTrafficPolicy: Local de giu client IP that
+# - nodePort co dinh de NodePort cu van hoat dong tren node co ingress pod
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.12.8
+  annotations:
+    metallb.io/loadBalancerIPs: 192.168.0.120
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - appProtocol: http
+      name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+      nodePort: 32277
+    - appProtocol: https
+      name: https
+      port: 443
+      protocol: TCP
+      targetPort: https
+      nodePort: 30433
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx

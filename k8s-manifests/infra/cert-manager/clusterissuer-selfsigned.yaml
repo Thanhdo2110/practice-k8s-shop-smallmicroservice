@@ -1,0 +1,8 @@
+# Issuer self-signed de test TLS noi bo.
+# Khi co domain that + Cloudflare DNS-01 thi thay bang ClusterIssuer ACME.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}

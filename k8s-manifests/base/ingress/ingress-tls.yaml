@@ -1,0 +1,67 @@
+# Ingress rieng cho hostname TLS, tach khoi Ingress hostless de IP/NodePort
+# va truy cap bang IP van hoat dong.
+#
+# hsts=false vi dang dung cert self-signed; bat lai khi co cert that.
+# cert-manager.io/common-name de cert co Subject CN (tranh warning issuer DN rong).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-k8s-ingress-tls
+  namespace: shop-k8s
+  annotations:
+    cert-manager.io/cluster-issuer: selfsigned
+    cert-manager.io/common-name: shop.example.com
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - shop.example.com
+      secretName: shop-k8s-tls
+  rules:
+    - host: shop.example.com
+      http:
+        paths:
+          - path: /api/v1/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service-svc
+                port:
+                  number: 80
+          - path: /api/v1/users
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service-svc
+                port:
+                  number: 80
+          - path: /api/v1/products
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service-svc
+                port:
+                  number: 80
+          - path: /api/v1/categories
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service-svc
+                port:
+                  number: 80
+          - path: /api/v1/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service-svc
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontendthk8s-svc
+                port:
+                  number: 80

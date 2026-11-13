@@ -30,6 +30,7 @@ spec:
       - maxSkew: 1 # moi node khong duoc lech qua 1 , vi du: 2-2-1 . fail: 3-1-1
         topologyKey: kubernetes.io/hostname
         whenUnsatisfiable: DoNotSchedule
+        nodeTaintsPolicy: Honor # bo qua node bi taint (control-plane) khi tinh skew
         labelSelector:
           matchLabels:
             run: auth-service
