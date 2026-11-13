@@ -35,6 +35,28 @@ kubectl -n kube-system rollout restart ds/kube-proxy
 kubectl -n kube-system rollout status ds/kube-proxy --timeout=300s
 ```
 
+### kube-controller-manager
+
+Với Calico, KCM **không cần** cấp `podCIDR` cho node (Calico tự quản lý IPAM).
+Cấu hình đúng đang dùng:
+
+- `--cluster-cidr=10.244.0.0/16`
+- `--allocate-node-cidrs=false`
+- `kubeadm-config` → `controllerManager.extraArgs.allocate-node-cidrs: "false"`
+  (để `kubeadm upgrade` không bật lại)
+
+Lý do: các Node đã có `spec.podCIDR` cũ `192.168.x.0/24` và field này
+**immutable**. Nếu để `--allocate-node-cidrs=true`, `node-ipam-controller`
+sẽ làm KCM crash với lỗi:
+
+```
+failed to mark cidr[192.168.0.0/24] ... cidr is out the range of cluster cidr 10.244.0.0/16
+```
+
+Khi cần `spec.podCIDR` sạch `10.244.x.0/24` thì phải xoá Node object để
+kubelet đăng ký lại (thao tác rủi ro, cần maintenance window và tạm dừng
+`calico-kube-controllers` để tránh dọn IPAM block).
+
 Sau đó rolling restart workload để pod mới nhận IP `10.244.x`:
 
 ```bash
@@ -128,6 +150,11 @@ curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' \
 kubectl -n ingress-nginx get deploy,pods,pdb,svc
 kubectl -n metallb-system get ipaddresspool,l2advertisement
 kubectl -n shop-k8s get deploy,pods,ingress,certificate
+
+# KCM phai dung CIDR moi va khong allocate node CIDR
+kubectl -n kube-system get pod kube-controller-manager-control-plane \
+  -o jsonpath='{.spec.containers[0].command}' | tr ',' '\n' \
+  | grep -E 'cluster-cidr|allocate-node'
 ```
 
 ## Hành vi cần biết
@@ -210,5 +237,7 @@ Không xoá pool khi còn pod đang giữ IP từ pool đó.
 
 ## Backup trước khi thay đổi
 
-Bản backup manifest gốc ngày `2026-11-12` nằm tại
-`/home/dont/backup/shop-k8s-2026-11-12/` (quyền `700`).
+- `/home/dont/backup/shop-k8s-2026-11-12/` — manifest gốc trước khi thay đổi
+  (quyền `700`).
+- `/home/dont/backup/cluster-cidr-2026-11-13/` — `kubeadm-config`, node state
+  và static pod manifest của KCM trước/sau khi đổi cluster CIDR.
