@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: test-telegram-alert
+  namespace: monitoring
+  labels:
+    release: prometheus-stack  # Phải khớp với tên release Helm của bạn
+spec:
+  groups:
+    - name: test-group
+      rules:
+        - alert: TelegramTestAlert
+          expr: vector(1)
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Kiem tra canh bao Telegram thanh cong!"
+            description: "Day la tin nhan test he thong canh bao tu Kubernetes sang Telegram cua Nguyen Thanh Do."
